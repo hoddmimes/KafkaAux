@@ -10,17 +10,21 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class SimpleJsonMapper extends LinkedHashMap<String,Object>
+public class JsonMapper extends LinkedHashMap<String,Object>
 {
 
-    public SimpleJsonMapper( LinkedHashMap<String,Object> pMap ) {
+    public JsonMapper(LinkedHashMap<String,Object> pMap ) {
         super();
         this.putAll( copyMap( pMap ) );
     }
 
-    public SimpleJsonMapper(  JsonObject pJsonObject ) {
+    public JsonMapper(JsonObject pJsonObject ) {
         super();
         this.putAll(unpackJson(pJsonObject));
+    }
+
+    public JsonMapper(String  pJsonString ) {
+        this( new JsonParser().parse( pJsonString).getAsJsonObject());
     }
 
     private LinkedHashMap<String,Object> unpackJson( JsonObject pJsonObject ) {
@@ -154,13 +158,15 @@ public class SimpleJsonMapper extends LinkedHashMap<String,Object>
     }
 
 
+    public String toString() {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        return gson.toJson( asJson());
+    }
 
 
     public static void main(String[] args ) {
-        String js = "{\"int\" : 123, \"float\": 3.14, \"long\" :1234567891234, \"string\" : \"hej hopp string\",\"boolean\" : true }";
-        JsonObject jObj = new JsonParser().parse( js ).getAsJsonObject();
-            JsonPrimitive p = jObj.get("long").getAsJsonPrimitive();
-            Object o = parseJsonNumber( p );
-
+        String js = "{\"int\" : 123, \"float\": 3.14, \"long\" :1234567891234, \"string\" : \"hej hopp string\",\"boolean\" : true, \"foo\" : { \"a\" : 1, \"b\" : \"kalle\", \"c\" : true }}";
+        JsonMapper m = new JsonMapper( js );
+        System.out.println(m);
     }
 }
