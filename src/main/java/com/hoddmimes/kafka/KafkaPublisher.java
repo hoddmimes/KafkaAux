@@ -6,6 +6,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.KafkaException;
+import org.apache.kafka.common.header.Header;
 
 import java.util.Properties;
 import java.util.concurrent.Future;
@@ -13,33 +14,31 @@ import java.util.concurrent.Future;
 
 public class KafkaPublisher
 {
-    KafkaProducer<String, byte[]>    mProducer;
+    KafkaProducer<Long, byte[]>    mProducer;
 
-    public static Properties getDefaultProperties( String pBootstrapServerPort) {
-        Properties p = new Properties();
-
-        p.put("bootstrap.servers", pBootstrapServerPort);
-        p.put("acks", "all");
-        p.put("retries", 0);
-        p.put("batch.size", 16384);
-        p.put("linger.ms", 1);
-        p.put("client.id","");
-        p.put("buffer.memory", 33554432);
-        p.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        p.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
-        return p;
-    }
-
-
-    public KafkaPublisher( Properties pProperties ) throws KafkaException
+    public KafkaPublisher( KafkaPublisherConfig pProperties ) throws KafkaException
     {
         mProducer = new KafkaProducer<>( pProperties );
     }
 
-    public Future<RecordMetadata> send(String pTopic, byte[] pMessage, int pPartition, Long pKey  ) throws KafkaException
+    public Future<RecordMetadata> send(String pTopic, Integer pPartition, Long pKey, byte[] pMessage, Iterable<Header> pHeaders) {
+        ProducerRecord<Long, byte[]> tDataRec = new ProducerRecord(pTopic, pPartition, null, pKey, pMessage, pHeaders);
+        return mProducer.send(tDataRec);
+    }
+
+    public Future<RecordMetadata> send(String pTopic, byte[] pMessage ) throws KafkaException
     {
-        ProducerRecord<String, byte[]> tDataRec = new ProducerRecord<>( pTopic,  pPartition, (pKey == null) ? null : String.valueOf( pKey ), pMessage );
-        return mProducer.send( tDataRec );
+        return send( pTopic, null, null, pMessage, null);
+    }
+
+    public Future<RecordMetadata> send(String pTopic, Integer pPartition, byte[] pMessage ) throws KafkaException
+    {
+        return send( pTopic, pPartition, null, pMessage, null);
+    }
+
+    public Future<RecordMetadata> send(String pTopic, Integer pPartition, Long pKey, byte[] pMessage ) throws KafkaException
+    {
+        return send( pTopic, pPartition, pKey, pMessage, null);
     }
 
 }
