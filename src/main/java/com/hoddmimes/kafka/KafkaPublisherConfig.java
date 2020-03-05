@@ -17,8 +17,9 @@ public class KafkaPublisherConfig extends Properties
     public KafkaPublisherConfig( String pBootstrapServerPort) {
         super();
         this.put("bootstrap.servers", pBootstrapServerPort);
+        this.put("enable.idempotence=",true);
         this.put("acks", "all");
-        this.put("retries", 0);
+        this.put("retries", 1000000);
         this.put("batch.size", 16384);
         this.put("linger.ms", 1);
         this.put("client.id","");

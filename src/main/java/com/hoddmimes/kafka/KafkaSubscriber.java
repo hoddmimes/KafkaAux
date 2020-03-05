@@ -7,6 +7,9 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 
 
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Pattern;
 
 public class KafkaSubscriber extends Thread
 {
@@ -24,8 +27,20 @@ public class KafkaSubscriber extends Thread
         this.start();
     }
 
+    public void addSubscription( String pTopic ) {
+        mSubscriber.subscribe(Arrays.asList(pTopic));
+    }
+
+    public void addSubscription( List<String> pTopics ) {
+        mSubscriber.subscribe(pTopics);
+    }
+    public void addSubscriptionRegExp( String pTopicRegExp ) {
+        mSubscriber.subscribe(Pattern.compile( pTopicRegExp ));
+    }
+
     public void close() {
         mTimeToExit = true;
+        mSubscriber.close();
     }
 
     public void run()
