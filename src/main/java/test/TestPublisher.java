@@ -47,7 +47,7 @@ public class TestPublisher
             for( int j = 0; j < mBatchFactor; j++) {
                 Topic tTopic = mTopics.get(rnd.nextInt( mTopics.size()));
                 int tSize = rnd.nextInt( mMaxMsgSize - mMinMsgSize) + mMinMsgSize;
-                try {mPublisher.send( tTopic.get(), 1, tTopic.seqno(), generateMessage( tSize ));}
+                try {mPublisher.send( tTopic.get(), 0, tTopic.seqno(), generateMessage( tSize ));}
                 catch( KafkaException e) {
                     e.printStackTrace();
                 }
