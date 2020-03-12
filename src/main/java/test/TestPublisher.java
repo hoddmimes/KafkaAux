@@ -1,9 +1,12 @@
 package test;
 
+import com.fasterxml.jackson.databind.util.StdDateFormat;
+import com.google.gson.JsonObject;
 import com.hoddmimes.kafka.KafkaPublisher;
 import com.hoddmimes.kafka.KafkaPublisherConfig;
 import org.apache.kafka.common.KafkaException;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -11,6 +14,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class TestPublisher
 {
+    private static final SimpleDateFormat SDF = new SimpleDateFormat("HH:mm:ss.SSS");
+
     private int mMsgsToSend  = 10000;
     private int mMinMsgSize  = 20;
     private int mMaxMsgSize = 1024;
@@ -31,13 +36,24 @@ public class TestPublisher
         tPublisher.publish();
     }
 
-    byte[] generateMessage( int pSize ) {
+    private String generateData( int pSize ) {
         byte[] tBuffer = new byte[ pSize ];
         for( int i = 0; i < pSize; i++ ) {
             tBuffer[i] = (byte) (65 + (i%25));
         }
-        return tBuffer;
+        return new String(tBuffer);
     }
+
+    JsonObject buildMessage(String pTopic, long pSeqNo, int pDataSize ) {
+        JsonObject tMsg = new JsonObject();
+        tMsg.addProperty("topic", pTopic);
+        tMsg.addProperty("seqno", pSeqNo);
+        tMsg.addProperty("time", SDF.format( System.currentTimeMillis()));
+        tMsg.addProperty("data", generateData( pDataSize ));
+        return tMsg;
+    }
+
+
 
     private void publish() {
         int i = 0;
@@ -47,7 +63,8 @@ public class TestPublisher
             for( int j = 0; j < mBatchFactor; j++) {
                 Topic tTopic = mTopics.get(rnd.nextInt( mTopics.size()));
                 int tSize = rnd.nextInt( mMaxMsgSize - mMinMsgSize) + mMinMsgSize;
-                try {mPublisher.send( tTopic.get(), 0, tTopic.seqno(), generateMessage( tSize ));}
+                tTopic.mSeqNo.incrementAndGet();
+                try {mPublisher.send( tTopic.mTopic, 0, tTopic.mSeqNo.longValue(), buildMessage( tTopic.mTopic, tTopic.mSeqNo.longValue(), tSize ));}
                 catch( KafkaException e) {
                     e.printStackTrace();
                 }
@@ -128,14 +145,5 @@ public class TestPublisher
             mTopic = pTopic;
             mSeqNo = new AtomicLong(0);
         }
-
-        String get() {
-            return mTopic;
-        }
-
-        long seqno() {
-            return mSeqNo.incrementAndGet();
-        }
-
     }
 }

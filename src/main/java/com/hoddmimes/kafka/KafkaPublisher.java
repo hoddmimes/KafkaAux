@@ -2,20 +2,22 @@ package com.hoddmimes.kafka;
 
 
 
+import com.google.gson.JsonObject;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.KafkaException;
-import org.apache.kafka.common.header.Header;
 
-import java.util.Properties;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Future;
 
 
 public class KafkaPublisher implements Callback
 {
-    private KafkaProducer<Long, byte[]>    mProducer;
+    private KafkaProducer<Long, String>    mProducer;
     private String mProducerId;
 
     public KafkaPublisher( String pProducerId, KafkaPublisherConfig pProperties ) throws KafkaException
@@ -36,31 +38,36 @@ public class KafkaPublisher implements Callback
     }
 
 
-    public Future<RecordMetadata> send(ProducerRecord<Long, byte[]> pDataRec) {
+    public Future<RecordMetadata> send(ProducerRecord<Long, String> pDataRec) {
         return mProducer.send(pDataRec, this );
     }
 
-    public Future<RecordMetadata> send(String pTopic, byte[] pMessage ) throws KafkaException
+    public Future<RecordMetadata> send(String pTopic, JsonObject pMessage ) throws KafkaException
     {
-        ProducerRecord<Long, byte[]> tDataRec = new ProducerRecord(pTopic, null, null, null, pMessage, null);
-        return send( tDataRec );
+        return send( pTopic, null, null, pMessage, null);
     }
 
-    public Future<RecordMetadata> send(String pTopic, Integer pPartition, byte[] pMessage ) throws KafkaException
+    public Future<RecordMetadata> send(String pTopic, Integer pPartition,  JsonObject pMessage ) throws KafkaException
     {
-        ProducerRecord<Long, byte[]> tDataRec = new ProducerRecord(pTopic, pPartition, null, null, pMessage, null);
-        return send( tDataRec );
+        return send( pTopic, pPartition, null, pMessage, null);
     }
 
-    public Future<RecordMetadata> send(String pTopic, Integer pPartition, Long pKey, byte[] pMessage ) throws KafkaException
+    public Future<RecordMetadata> send(String pTopic, Integer pPartition,  JsonObject pMessage, JsonObject pMsgHeader  ) throws KafkaException
     {
-        ProducerRecord<Long, byte[]> tDataRec = new ProducerRecord(pTopic, pPartition, null, pKey, pMessage, null);
-        return send( tDataRec );
+        return send( pTopic, pPartition, null, pMessage, pMsgHeader);
     }
 
-    public Future<RecordMetadata> send(String pTopic, Integer pPartition, Long pKey, byte[] pMessage, MsgHeader pHeader ) throws KafkaException
+    public Future<RecordMetadata> send(String pTopic, Integer pPartition, Long pKey, JsonObject pMessage ) throws KafkaException
     {
-        ProducerRecord<Long, byte[]> tDataRec = new ProducerRecord(pTopic, pPartition, null, pKey, pMessage, pHeader);
+        return send( pTopic, pPartition, null, pMessage, null);
+    }
+
+
+    public Future<RecordMetadata> send(String pTopic, Integer pPartition, Long pKey, JsonObject pMessage, JsonObject pMsgHeader ) throws KafkaException
+    {
+        List<MsgHeaderItem> tHdrList = new ArrayList<>();
+        tHdrList.add( new MsgHeaderItem( pMsgHeader ));
+        ProducerRecord<Long, String> tDataRec = new ProducerRecord(pTopic, pPartition, null, pKey, pMessage.toString(), tHdrList);
         return send( tDataRec );
     }
 

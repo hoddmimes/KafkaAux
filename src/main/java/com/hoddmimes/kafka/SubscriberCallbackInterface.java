@@ -1,10 +1,12 @@
 package com.hoddmimes.kafka;
 
+import com.google.gson.JsonObject;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.common.KafkaException;
+
+import java.util.Optional;
 
 public interface SubscriberCallbackInterface
 {
-    public void subscriberUpdate( ConsumerRecord<Long, byte[]> pUpdate );
+    public void subscriberUpdate( ConsumerRecord<Long, String> pUpdate, Optional<JsonObject> jMsgHdr );
     public void subscriberError(Throwable pException );
 }
