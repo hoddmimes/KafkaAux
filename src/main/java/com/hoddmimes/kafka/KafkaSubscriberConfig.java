@@ -3,6 +3,7 @@ package com.hoddmimes.kafka;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.LongDeserializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
 
 import java.util.Properties;
 
@@ -23,7 +24,7 @@ public class KafkaSubscriberConfig extends Properties
         this.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
         this.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
         this.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class.getName());
-        this.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
+        this.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         this.setProperty(POLL_INTERVAL, String.valueOf(20));
     }
 

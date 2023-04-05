@@ -65,8 +65,11 @@ public class KafkaPublisher implements Callback
 
     public Future<RecordMetadata> send(String pTopic, Integer pPartition, Long pKey, JsonObject pMessage, JsonObject pMsgHeader ) throws KafkaException
     {
-        List<MsgHeaderItem> tHdrList = new ArrayList<>();
-        tHdrList.add( new MsgHeaderItem( pMsgHeader ));
+        List<MsgHeaderItem> tHdrList = null;
+        if (pMsgHeader != null) {
+            tHdrList = new ArrayList<>();
+            tHdrList.add( new MsgHeaderItem( pMsgHeader ));
+        }
         ProducerRecord<Long, String> tDataRec = new ProducerRecord(pTopic, pPartition, null, pKey, pMessage.toString(), tHdrList);
         return send( tDataRec );
     }
@@ -88,6 +91,6 @@ public class KafkaPublisher implements Callback
         if (exception != null) {
           exception.printStackTrace();
         }
-        System.out.println( "Topic: " + md.topic() +"Partition: " + md.partition() + " offset: " + md.offset());
+        System.out.println( "Topic: \"" + md.topic() +"\" Partition: " + md.partition() + " offset: " + md.offset());
     }
 }

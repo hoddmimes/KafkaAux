@@ -6,11 +6,13 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.PartitionInfo;
 
 
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -22,23 +24,41 @@ public class KafkaSubscriber extends Thread
     Duration                    mPollDuration;
 
 
-    KafkaSubscriber( KafkaSubscriberConfig pProperties, SubscriberCallbackInterface pCallback ) {
+    public KafkaSubscriber(KafkaSubscriberConfig pProperties, SubscriberCallbackInterface pCallback) {
         mSubscriber = new KafkaConsumer<>( pProperties );
         mCallback = pCallback;
         mTimeToExit = false;
         mPollDuration = Duration.ofMillis(pProperties.getPollInterval());
-        this.start();
     }
 
+
+
     public void addSubscription( String pTopic ) {
-        mSubscriber.subscribe(Arrays.asList(pTopic));
+        synchronized (mSubscriber) {
+            mSubscriber.subscribe(Arrays.asList(pTopic));
+        }
     }
     public void addSubscription( List<String> pTopics ) {
-        mSubscriber.subscribe(pTopics);
+        synchronized (mSubscriber) {
+            mSubscriber.subscribe(pTopics);
+        }
     }
-    public void addSubscriptionRegExp( String pTopicRegExp ) {
-        mSubscriber.subscribe(Pattern.compile( pTopicRegExp ));
+    public void addSubscriptionRegExp( Pattern pRegExpPattern ) {
+        synchronized (mSubscriber) {
+            mSubscriber.subscribe( pRegExpPattern );
+        }
     }
+
+    public void addSubscriptionRegExp( String pRegExpPatternString ) {
+        mSubscriber.subscribe( Pattern.compile( pRegExpPatternString ) );
+    }
+
+    public Map<String, List<PartitionInfo>> listTopics() {
+        synchronized (mSubscriber) {
+            return mSubscriber.listTopics();
+        }
+    }
+
 
     public void close() {
         mTimeToExit = true;
@@ -51,7 +71,11 @@ public class KafkaSubscriber extends Thread
         Optional<JsonObject> tMsgHdr;
 
         while(!mTimeToExit) {
-            try { tMessages = mSubscriber.poll( mPollDuration ); }
+            try {
+                synchronized (mSubscriber) {
+                    tMessages = mSubscriber.poll( mPollDuration );
+                }
+            }
             catch( Throwable pException ) {
                 mCallback.subscriberError( pException );
                 return;
