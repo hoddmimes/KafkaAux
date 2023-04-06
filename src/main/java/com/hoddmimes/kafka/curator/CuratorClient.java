@@ -81,6 +81,13 @@ public class CuratorClient {
     }
 
 
+    public byte[] get( String pPath ) {
+        try {
+            return mClient.getData().forPath(pPath);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public void create( String pPath ) {
         try {
